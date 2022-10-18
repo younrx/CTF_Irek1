@@ -10,19 +10,6 @@ To help you, an inside man stole:
 
 The purpose of this challenge is to evaluate your way to solve this problem (even if you don't succeed it), so please write everything you tried in your report.
 
-## Analysis
-### The certificate
-Here's the content of the certificate :
-```
-user=toto
-admin=0
-sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
-```
-It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
-> Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
-
-### The verification function
-
 ## Executing the binary file
 ### Server side
 When executed, the binary `serma_challenge` starts a server. Here's the view in a terminal, after adding execution mode to the binary file (`chmod +x`):
@@ -41,7 +28,29 @@ We can establish a connection to this port with `telnet localhost 1337` and send
 
 ![help_cmd](img/help_cmd.png)
 
-On the server's side, it just display the command recieved in hexadecimal, with an end sequence (`|d|a`):
+We now know the different commands avaiable:
+- help
+- verify
+- exit
+
+On the server's side, it just display the command recieved in hexadecimal, with an end sequence (`|d|a|`):
 
 ![help_cmd_server_side](img/help_cmd_server_side.png)
+
+### The `verify` command
+
+When sending the `verify` command, the server answers 'Cmd locked`. This behaviour seems to be due to the certificate verification function described in `extract.c`. More information about this function in the section below.
+
+## Analysis
+### The certificate
+Here's the content of the certificate :
+```
+user=toto
+admin=0
+sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
+```
+It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
+> Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
+
+### The verification function
 
