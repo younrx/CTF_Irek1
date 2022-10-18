@@ -142,3 +142,7 @@ The expected data seem to be the following:
 
 > Idea : Use a script to send specific hexa values to the server
 
+## Looking for the exploit
+### Unlocking the verify command
+
+I have tried to unlock the `verify` command by sending specific hexa values to the server. I sent the command `unlock \x98\x93\x97\x94\x96\x93\x0d\x0a` but it didn't work. It looks like the values described in the previous section are not the exact values wanted by the server.
