@@ -37,3 +37,4 @@ To know on which port the server is linked, we can analyse all open ports with t
 ![open_ports](/img/open_ports.png)
 
 It shows that this server is on the port 1337.
+We can establish a connection to this port with `telnet localhost 1337` and send commands to the server.
