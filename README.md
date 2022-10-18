@@ -39,3 +39,9 @@ To know on which port the server is linked, we can analyse all open ports with t
 It shows that this server is on the port 1337.
 We can establish a connection to this port with `telnet localhost 1337` and send commands to the server. Here's the returned data from server after sending 'help' command (as sugested):
 
+![help_cmd](img/help_cmd.png)
+
+On the server's side, it just display the command recieved in hexadecimal, with an end sequence (`|d|a`):
+
+![help_cmd_server_side](img/help_cmd_server_side.png)
+
