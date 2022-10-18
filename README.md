@@ -70,3 +70,47 @@ flowchart TD
   Temp[temp]
   end
 ```
+
+The verification function is disabled by a flag (`verify_cmd_locked` in `extract.c`), and forbid us to go any further in the certificate verification procedure.
+
+### The binary file
+
+By analyzing the file `serma_challenge` with Ghidra, it turns out that another command is avaiable : the command `unlock`. By trying this command we get two different answers from the server:
+- `Wrong cmd format (expected format: unlock XXXXXXXX | 0xA5 XXXXXXXX)`
+- `Wrong PIN (0)`
+
+This second aswer is get if the command respect the foloxxing formats:
+- `unlockXXXXXXX` (the command folowed by 7 characters, most likely a space and 6 characters)
+- or `unlockXX`
+
+This function does the following (from re-assembled code):
+```
+void unlock(int socket_conn,int lenght_data_received)
+{
+  [...]
+  
+  if ((lenght_data_received != 0xf) && (__s = PTR_s_Wrong_cmd_format_(expected_forma_00105130, lenght_data_received != 10)) {
+  LAB_00101cdc:
+    __n = strlen(__s);
+    write(socket_conn,__s,__n);
+    return;
+  }
+  iVar1 = (uint)(lenght_data_received == 0xf) * 5;
+  if ((int)DAT_001050d0 == (uint)(byte)(&input_buff_slot)[iVar1 + 2]) {
+    if ((int)DAT_001050d1 == (uint)(byte)(&input_buff_slot)[iVar1 + 3]) {
+      if ((int)DAT_001050d2 == (uint)(byte)(&input_buff_slot)[iVar1 + 4]) {
+        if ((int)DAT_001050d3 == (uint)(byte)(&input_buff_slot)[iVar1 + 5]) {
+          if ((int)DAT_001050d4 == (uint)(byte)(&input_buff_slot)[iVar1 + 6]) {
+            if ((int)DAT_001050d5 == (uint)(byte)(&input_buff_slot)[iVar1 + 7]) {
+              if ((int)DAT_001050d6 == (uint)(byte)(&input_buff_slot)[iVar1 + 8]) {
+                cVar6 = '\a';
+                if ((int)DAT_001050d7 == (uint)(byte)(&input_buff_slot)[iVar1 + 9]) {
+                  verify_cmd_locked = 0;
+                  __s = PTR_s_Cmd_unlocked_00105140;
+                  goto LAB_00101cdc;
+                }
+  [...]
+}
+```
+It beahavior is quite simple, it verifies that the length of the given data is 15 or 10, and if not it prints an error message.
+If this first step is passed, it checks if the input data correspond to pre-defined values (`DAT_001050dX`) and if so, it toggles the flag `verify_cmd_locked` to `0` before printing the message `Cmd unlock`.
