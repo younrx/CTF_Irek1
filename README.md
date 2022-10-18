@@ -39,7 +39,7 @@ On the server's side, it just display the command recieved in hexadecimal, with 
 
 ### The `verify` command
 
-When sending the `verify` command, the server answers 'Cmd locked`. This behaviour seems to be due to the certificate verification function described in `extract.c`. More information about this function in the section below.
+When sending the `verify` command, the server answers `Cmd locked`. This behaviour seems to be due to the certificate verification function described in `extract.c`. More information about this function in the section below.
 
 ## Analysis
 ### The certificate
@@ -54,3 +54,19 @@ It said that if we had a certificate with admin rights, we could retrieve the ke
 
 ### The verification function
 
+From the source code, we can get the execution graph of the certificate verification procedure:
+```mermaid
+flowchart TD
+  %% ----- MAIN CHECK -----
+  %% Boxes
+  VerifyCmdCheck{Is 'verify' cmd locked}
+  PrintVerifyCmdIsLocked["Return : 'Cmd lock'"]
+  %% Links
+  VerifyCmdCheck --Yes--> PrintVerifyCmdIsLocked
+  VerifyCmdCheck --No--> Temp
+
+  %% ----- CERTIFICATE VERIFICATION -----
+  subgraph Certificate Verification
+  Temp[temp]
+  end
+```
