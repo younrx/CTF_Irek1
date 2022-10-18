@@ -25,4 +25,15 @@ It said that if we had a certificate with admin rights, we could retrieve the ke
 
 ## Executing the binary file
 ### Server side
-When executed, the binary `serma_challenge` starts a server. Here's the view in a terminal (after adding execution mode to the binary file (`chmod +x`)) :
+When executed, the binary `serma_challenge` starts a server. Here's the view in a terminal, after adding execution mode to the binary file (`chmod +x`):
+
+![exec_serma_challenge](/img/exec_serma_challenge.png)
+
+It tolds us that a server has been started, probably on a local port.
+
+### Client side
+To know on which port the server is linked, we can analyse all open ports with the command `lsof -i -P -n` :
+
+![open_ports](/img/open_ports.png)
+
+It shows that this server is on the port 1337.
