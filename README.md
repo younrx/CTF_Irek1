@@ -1,10 +1,11 @@
 # CTF sent by Irek (11/10/22)
 
 This CTF report is deomposed as follows:
-- [Description](https://github.com/younrx/CTF_Irek1#description)
-- [Executing the binary file](https://github.com/younrx/CTF_Irek1#executing-the-binary-file)
-- [Analysis](https://github.com/younrx/CTF_Irek1#analysis)
-- [Looking for the exploit](https://github.com/younrx/CTF_Irek1#looking-for-the-exploit)
+- [Description](#description)
+- [Executing the binary file](#executing-the-binary-file)
+- [Analysis](#analysis)
+- [Looking for the exploit](#looking-for-the-exploit)
+
 
 ## Description
 The goal of this challenge is to retrieve a key stored inside a binary that usually run on a server. One way to get it is to verify a certificate with admin rights.
