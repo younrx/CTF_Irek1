@@ -156,3 +156,11 @@ I have tried to unlock the `verify` command by sending specific hexa values to t
 
 It turned out that the python script I made allows me to send data without the end characters `0x0d` and `0x0a`. Thus, it is likely that the servers expect a 8-character PIN, without any end characters. The `0x0d` and `0x0a` were due to the use of telnet.
 
+Thus, it seems that the expected PIN is `\x96\x97\x93\x96\x94\x97\x93\x98`. But this is not accepted neither.
+
+> Idea : The input buffer is pre-processed somewhere before the PIN is verified
+> Two possibilities :
+> - reversing the code more deeply to find any modification applied to the input buffer
+> - using a debugger step by step to find any modification applied to the input buffer
+
+> Other approach : brute-forcing the PIN
