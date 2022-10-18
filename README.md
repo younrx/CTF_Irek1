@@ -123,7 +123,7 @@ As it performs 8 checks, we can assume that it expect an input data constructed 
 
 Thus, the input `unlockXX` seems to not be the expected input (because it cannot perform 8 chekcs on an only 4-length input (2 data characters + 2 final characters))
 
-> Remark: Is accepting this short-version command `unlockXX` an unexpected bahavior ? Or is it a feature that we should exploit ?
+> Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
 
 Here are the pre-defined values given by Ghidra:
 ```
@@ -139,3 +139,6 @@ DAT_001050d7 = 98h
 
 The expected data seem to be the following:
 `|75|6e|6c|6f|63|6b|20|96|97|93|96|94|97|d|a|`
+
+> Idea : Use a script to send specific hexa values to the server
+
