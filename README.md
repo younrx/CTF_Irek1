@@ -159,6 +159,7 @@ It turned out that the python script I made allows me to send data without the e
 Thus, it seems that the expected PIN is `\x96\x97\x93\x96\x94\x97\x93\x98`. But this is not accepted neither.
 
 > Idea : The input buffer is pre-processed somewhere before the PIN is verified
+> 
 > Two possibilities :
 > - reversing the code more deeply to find any modification applied to the input buffer
 > - using a debugger step by step to find any modification applied to the input buffer
