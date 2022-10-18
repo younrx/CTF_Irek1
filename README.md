@@ -114,3 +114,28 @@ void unlock(int socket_conn,int lenght_data_received)
 ```
 It beahavior is quite simple, it verifies that the length of the given data is 15 or 10, and if not it prints an error message.
 If this first step is passed, it checks if the input data correspond to pre-defined values (`DAT_001050dX`) and if so, it toggles the flag `verify_cmd_locked` to `0` before printing the message `Cmd unlock`.
+
+As it performs 8 checks, we can assume that it expect an input data constructed as follows:
+- `unlock` command (6 characters)
+- separation element, can be a space (1 character)
+- PIN with 6 characters
+- final characters `0xd` and `0xa` (2 characters)
+
+Thus, the input `unlockXX` seems to not be the expected input (because it cannot perform 8 chekcs on an only 4-length input (2 data characters + 2 final characters))
+
+> Remark: Is accepting this short-version command `unlockXX` an unexpected bahavior ? Or is it a feature that we should exploit ?
+
+Here are the pre-defined values given by Ghidra:
+```
+DAT_001050d0 = 96h
+DAT_001050d1 = 97h
+DAT_001050d2 = 93h
+DAT_001050d3 = 96h
+DAT_001050d4 = 94h
+DAT_001050d5 = 97h
+DAT_001050d6 = 93h
+DAT_001050d7 = 98h
+```
+
+The expected data seem to be the following:
+`|75|6e|6c|6f|63|6b|20|96|97|93|96|94|97|d|a|`
