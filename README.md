@@ -153,3 +153,6 @@ The expected data seem to be the following:
 ### Unlocking the verify command
 
 I have tried to unlock the `verify` command by sending specific hexa values to the server. I sent the command `unlock \x98\x93\x97\x94\x96\x93\x0d\x0a` but it didn't work. It looks like the values described in the previous section are not the exact values wanted by the server.
+
+It turned out that the python script I made allows me to send data without the end characters `0x0d` and `0x0a`. Thus, it is likely that the servers expect a 8-character PIN, without any end characters. The `0x0d` and `0x0a` were due to the use of telnet.
+
