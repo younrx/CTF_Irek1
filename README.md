@@ -1,13 +1,18 @@
 # CTF sent by Irek (11/10/22)
 
 This CTF report is deomposed as follows:
-- [Description](#description)
+- [CTF Description](#ctf-description)
 - [Executing the binary file](#executing-the-binary-file)
-- [Analysis](#analysis)
-- [Looking for the exploit](#looking-for-the-exploit)
+- [Exploit and analysis](#exploit-and-analysis)
+  - [First analysis](#first-analysis)
+    - [The certificate](#the-certificate)
+    - [The verification function](#the-verification-function)
+  - [Unlocking the verify command](#unlocking-the-verify-command)
+    - [Analyzing the binary file](#analyzing-the-binary-file)
+    - [Exploit to find the PIN](#exploit-to-find-the-pin)
 
 
-## Description
+## CTF Description
 The goal of this challenge is to retrieve a key stored inside a binary that usually run on a server. One way to get it is to verify a certificate with admin rights.
 
 To help you, an inside man stole:
@@ -48,8 +53,11 @@ On the server's side, it just display the command recieved in hexadecimal, with 
 
 When sending the `verify` command, the server answers `Cmd locked`. This behaviour seems to be due to the certificate verification function described in `extract.c`. More information about this function in the section below.
 
-## Analysis
-### The certificate
+## Exploit and analysis
+This section describes the steps I have been through in the chronological order.
+
+### First analysis
+#### The certificate
 Here's the content of the certificate :
 ```
 user=toto
@@ -59,7 +67,7 @@ sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
 It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
 > Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
 
-### The verification function
+#### The verification function
 
 From the source code, we can get the execution graph of the certificate verification procedure:
 ```mermaid
@@ -80,7 +88,8 @@ flowchart TD
 
 The verification function is disabled by a flag (`verify_cmd_locked` in `extract.c`), and forbid us to go any further in the certificate verification procedure.
 
-### The binary file
+### Unlocking the verify command
+#### Analyzing the binary file
 
 By analyzing the file `serma_challenge` with Ghidra, it turns out that another command is avaiable : the command `unlock`. By trying this command we get two different answers from the server:
 - `Wrong cmd format (expected format: unlock XXXXXXXX | 0xA5 XXXXXXXX)`
@@ -90,8 +99,11 @@ This second aswer is get if the command respect the foloxxing formats:
 - `unlockXXXXXXX` (the command folowed by 7 characters, most likely a space and 6 characters)
 - or `unlockXX`
 
+> Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
+
 This function does the following (from re-assembled code):
-```
+
+```c
 void unlock(int socket_conn,int lenght_data_received)
 {
   [...]
@@ -122,15 +134,20 @@ void unlock(int socket_conn,int lenght_data_received)
 It beahavior is quite simple, it verifies that the length of the given data is 15 or 10, and if not it prints an error message.
 If this first step is passed, it checks if the input data correspond to pre-defined values (`DAT_001050dX`) and if so, it toggles the flag `verify_cmd_locked` to `0` before printing the message `Cmd unlock`.
 
-As it performs 8 checks, we can assume that it expect an input data constructed as follows:
-- `unlock` command (6 characters)
-- separation element, can be a space (1 character)
-- PIN with 6 characters
-- final characters `0xd` and `0xa` (2 characters)
+> :warning: **Mistake**
+> 
+> As it performs 8 checks, I first assumed that it expect an input data constructed as follows:
+> - `unlock` command (6 characters)
+> - separation element, can be a space (1 character)
+> - PIN with 6 characters
+> - final characters `0xd` and `0xa` (2 characters)
+>
+> But the characters `0xd` and `0xa` were only due to telnet, that sends the command to the server when I typed `return`.
+> By using a python script, I can construct myself the structure of the command, and send a 8-long PIN (wich is more likely what the server expects)
 
-Thus, the input `unlockXX` seems to not be the expected input (because it cannot perform 8 chekcs on an only 4-length input (2 data characters + 2 final characters))
 
-> Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
+Anyway, the input `unlockXX` seems to not be the expected input.
+
 
 Here are the pre-defined values given by Ghidra:
 ```
@@ -145,23 +162,20 @@ DAT_001050d7 = 98h
 ```
 
 The expected data seem to be the following:
-`|75|6e|6c|6f|63|6b|20|96|97|93|96|94|97|d|a|`
+`|75|6e|6c|6f|63|6b|20|96|97|93|96|94|97|93|98|`
 
-> Idea : Use a script to send specific hexa values to the server
+> Idea : Use a script to send these specific hexa values to the server
 
-## Looking for the exploit
-### Unlocking the verify command
+#### Exploit to find the PIN
 
-I have tried to unlock the `verify` command by sending specific hexa values to the server. I sent the command `unlock \x98\x93\x97\x94\x96\x93\x0d\x0a` but it didn't work. It looks like the values described in the previous section are not the exact values wanted by the server.
+I have tried to unlock the `verify` command by sending specific hexa values to the server. I sent the command `unlock \x96\x97\x93\x96\x94\x97\x93\x98` but it didn't work. It looks like the values described in the previous section are not the exact values wanted by the server.
 
-It turned out that the python script I made allows me to send data without the end characters `0x0d` and `0x0a`. Thus, it is likely that the servers expect a 8-character PIN, without any end characters. The `0x0d` and `0x0a` were due to the use of telnet.
-
-Thus, it seems that the expected PIN is `\x96\x97\x93\x96\x94\x97\x93\x98`. But this is not accepted neither.
-
-> Idea : The input buffer is pre-processed somewhere before the PIN is verified
+> Idea : The input buffer is pre-processed somewhere before the PIN is verified, or the values given by Ghidra are obfuscated in the code.
 > 
 > Two possibilities :
 > - reversing the code more deeply to find any modification applied to the input buffer
 > - using a debugger step by step to find any modification applied to the input buffer
 
 > Other approach : brute-forcing the PIN
+
+I chose to try a brute-forcing method.
