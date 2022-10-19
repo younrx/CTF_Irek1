@@ -10,6 +10,7 @@ This CTF report is deomposed as follows:
   - [Unlocking the verify command](#unlocking-the-verify-command)
     - [Analyzing the binary file](#analyzing-the-binary-file)
     - [Exploit to find the PIN](#exploit-to-find-the-pin)
+  - [The verification function](#the-verification-function)
 
 
 ## CTF Description
@@ -174,7 +175,7 @@ This gives me a patern that makes the brute-forcing tests a lot faster. With a p
 
 After having unlocked the verify command, the servers now answers `Wrong certificate format` (to the command `verify`).
 
-#### The verification function
+### The verification function
 
 From the source code, we can get the execution graph of the certificate verification procedure:
 ```mermaid
@@ -216,7 +217,7 @@ flowchart TD
   CheckOfstUsr -->|No| PrintWrCertFormat
   CheckOfstUsr -->|Yes| CheckOfstAdm
   CheckOfstAdm -->|No| PrintWrCertFormat
-  CheckOfstAdm -->|Yes| CheckOfstSig --> HMAC
+  CheckOfstAdm -->|Yes| CheckOfstSig -->|Yes| HMAC
   CheckOfstSig -->|No| PrintWrCertFormat
   %% -- HMAC --
   %% Boxes
