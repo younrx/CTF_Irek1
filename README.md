@@ -6,7 +6,7 @@ This CTF report is deomposed as follows:
 - [Exploit and analysis](#exploit-and-analysis)
   - [First analysis](#first-analysis)
     - [The certificate](#the-certificate)
-    - [The verification function](#the-verification-function)
+    - [The verify command](#the-verify-command)
   - [Unlocking the verify command](#unlocking-the-verify-command)
     - [Analyzing the binary file](#analyzing-the-binary-file)
     - [Exploit to find the PIN](#exploit-to-find-the-pin)
@@ -49,10 +49,6 @@ On the server's side, it just display the command recieved in hexadecimal, with 
 
 ![help_cmd_server_side](img/help_cmd_server_side.png)
 
-### The `verify` command
-
-When sending the `verify` command, the server answers `Cmd locked`. This behaviour seems to be due to the certificate verification function described in `extract.c`. More information about this function in the section below.
-
 ## Exploit and analysis
 This section describes the steps I have been through in the chronological order.
 
@@ -67,26 +63,9 @@ sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
 It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
 > :bulb: Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
 
-#### The verification function
+#### The `verify` command
 
-From the source code, we can get the execution graph of the certificate verification procedure:
-```mermaid
-flowchart TD
-  %% ----- MAIN CHECK -----
-  %% Boxes
-  VerifyCmdCheck{Is 'verify' cmd locked}
-  PrintVerifyCmdIsLocked["Return : 'Cmd lock'"]
-  %% Links
-  VerifyCmdCheck --Yes--> PrintVerifyCmdIsLocked
-  VerifyCmdCheck --No--> Temp
-
-  %% ----- CERTIFICATE VERIFICATION -----
-  subgraph Certificate Verification
-  Temp[temp]
-  end
-```
-
-The verification function is disabled by a flag (`verify_cmd_locked` in `extract.c`), and forbid us to go any further in the certificate verification procedure.
+When sending the `verify` command, the server answers `Cmd locked`. This behaviour is due to the certificate verification function described in `extract.c`: the verification function is disabled by a flag (`verify_cmd_locked`), and forbid us to go any further in the certificate verification procedure.
 
 ### Unlocking the verify command
 #### Analyzing the binary file
@@ -192,3 +171,24 @@ Let's call the PIN's characters values (in ASCII) with letters: ABCDEFGH. If the
 - G = C
 
 This gives me a patern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF`
+
+After having unlocked the verify command, the servers now answers `Wrong certificate format` (to the command `verify`).
+
+#### The verification function
+
+From the source code, we can get the execution graph of the certificate verification procedure:
+```mermaid
+flowchart TD
+  %% ----- MAIN CHECK -----
+  %% Boxes
+  VerifyCmdCheck{Is 'verify' cmd locked}
+  PrintVerifyCmdIsLocked["Return : 'Cmd lock'"]
+  %% Links
+  VerifyCmdCheck --Yes--> PrintVerifyCmdIsLocked
+  VerifyCmdCheck --No--> Temp
+
+  %% ----- CERTIFICATE VERIFICATION -----
+  subgraph Certificate Verification
+  Temp[temp]
+  end
+```
