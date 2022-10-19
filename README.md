@@ -65,7 +65,7 @@ admin=0
 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
 ```
 It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
-> Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
+> :bulb: Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
 
 #### The verification function
 
@@ -99,7 +99,7 @@ This second aswer is get if the command respect the foloxxing formats:
 - `unlockXXXXXXX` (the command folowed by 7 characters, most likely a space and 6 characters)
 - or `unlockXX`
 
-> Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
+> :question: Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
 
 This function does the following (from re-assembled code):
 
@@ -164,18 +164,18 @@ DAT_001050d7 = 98h
 The expected data seem to be the following:
 `|75|6e|6c|6f|63|6b|20|96|97|93|96|94|97|93|98|`
 
-> Idea : Use a script to send these specific hexa values to the server
+> :bulb: Idea : Use a script to send these specific hexa values to the server
 
 #### Exploit to find the PIN
 
 I have tried to unlock the `verify` command by sending specific hexa values to the server. I sent the command `unlock \x96\x97\x93\x96\x94\x97\x93\x98` but it didn't work. It looks like the values described in the previous section are not the exact values wanted by the server.
 
-> Idea : The input buffer is pre-processed somewhere before the PIN is verified, or the values given by Ghidra are obfuscated in the code.
+> :bulb: Idea : The input buffer is pre-processed somewhere before the PIN is verified, or the values given by Ghidra are obfuscated in the code.
 > 
 > Two possibilities :
 > - reversing the code more deeply to find any modification applied to the input buffer
 > - using a debugger step by step to find any modification applied to the input buffer
 
-> Other approach : brute-forcing the PIN
+> :bulb: Other approach : brute-forcing the PIN
 
 I chose to try a brute-forcing method.
