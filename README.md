@@ -179,13 +179,15 @@ After having unlocked the verify command, the servers now answers `Wrong certifi
 From the source code, we can get the execution graph of the certificate verification procedure:
 ```mermaid
 flowchart TD
+  Start((Start))
   %% ----- MAIN CHECK -----
   %% Boxes
   VerifyCmdCheck{"Is verify cmd locked ?"}
-  PrintVerifyCmdIsLocked["Return : 'Cmd lock'"]
+  PrintCmdIsLocked["Return : 'Cmd lock'"]
   %% Links
-  VerifyCmdCheck --Yes--> PrintVerifyCmdIsLocked
-  VerifyCmdCheck --No--> CheckSubstrUsr
+  Start --> VerifyCmdCheck
+  VerifyCmdCheck -->|Yes| PrintCmdIsLocked
+  VerifyCmdCheck -->|No| CheckSubstrUsr
 
   %% ----- CERTIFICATE VERIFICATION -----
   subgraph Certificate Verification
@@ -194,11 +196,19 @@ flowchart TD
   SaveOfstUsr["offset_user = strlen(entryBuff) - strlen('user=')"]
   CheckSubstrAdm{"Is 'admin=' in certificate ?"}
   SaveOfstAdm["offset_admin = strlen(entryBuff) - strlen('admin=') \n admin_rights = entryBuff[offset_admin + 6]"]
+  CheckSubstrSig{"Is 'sig=' in certificate ?"}
+  SaveOfstSig["offset_sig = strlen(entyBuff) - strlen('sig=')"]
   PrintWrCertFormat["Return : 'Wrong certificate format'"]
   %% Links
-  CheckSubstrUsr --No--> PrintWrCertFormat
-  CheckSubstrUsr --Yes--> SaveOfstUsr --> CheckSubstrAdm
-  CheckSubstrAdm ---No--> PrintWrCertFormat
-  CheckSubstrAdm --Yes--> SaveOfstAdm
+  CheckSubstrUsr -->|No| PrintWrCertFormat
+  CheckSubstrUsr -->|Yes| SaveOfstUsr --> CheckSubstrAdm
+  CheckSubstrAdm -->|No| PrintWrCertFormat
+  CheckSubstrAdm -->|Yes| SaveOfstAdm --> CheckSubstrSig
+  CheckSubstrSig --->|No| PrintWrCertFormat
+  CheckSubstrSig -->|Yes| SaveOfstSig
   end
+
+  End((End))
+  PrintCmdIsLocked --> End
+  PrintWrCertFormat --> End
 ```
