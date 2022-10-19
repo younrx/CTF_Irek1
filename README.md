@@ -143,7 +143,7 @@ If this first step is passed, it checks if the input data correspond to pre-defi
 > - final characters `0xd` and `0xa` (2 characters)
 >
 > But the characters `0xd` and `0xa` were only due to telnet, that sends the command to the server when I typed `return`.
-> By using a python script, I can construct myself the structure of the command, and send a 8-long PIN (wich is more likely what the server expects)
+> By using a python script, I can construct myself the structure of the command, and send a 8-long PIN (which is more likely what the server expects)
 
 
 Anyway, the input `unlockXX` seems to not be the expected input.
@@ -179,3 +179,16 @@ I have tried to unlock the `verify` command by sending specific hexa values to t
 > :bulb: Other approach : brute-forcing the PIN
 
 I chose to try a brute-forcing method.
+Assuming that the PIN only uses alpha-numerical characters (both with capital and lowercase letters), there is 65^8 possibilities, which is to much to test them all.
+
+But thanks to the values given by Ghidra, I can make another asumption:
+
+Let's call the PIN's characters values (in ASCII) with letters: ABCDEFGH. If the obfuscating method is linear, the values from Ghidra enable me to say that:
+- the lower value is C (and G because C = G)
+- A = D = C+3
+- B = F = C+4
+- E = C+1
+- H = C+5
+- G = C
+
+This gives me a patern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF`
