@@ -181,14 +181,24 @@ From the source code, we can get the execution graph of the certificate verifica
 flowchart TD
   %% ----- MAIN CHECK -----
   %% Boxes
-  VerifyCmdCheck{Is 'verify' cmd locked}
+  VerifyCmdCheck{"Is verify cmd locked ?"}
   PrintVerifyCmdIsLocked["Return : 'Cmd lock'"]
   %% Links
   VerifyCmdCheck --Yes--> PrintVerifyCmdIsLocked
-  VerifyCmdCheck --No--> Temp
+  VerifyCmdCheck --No--> CheckSubstrUsr
 
   %% ----- CERTIFICATE VERIFICATION -----
   subgraph Certificate Verification
-  Temp[temp]
+  %% Boxes
+  CheckSubstrUsr{"Is 'user=' in certificate ?"}
+  SaveOfstUsr["offset_user = strlen(entryBuff) - strlen('user=')"]
+  CheckSubstrAdm{"Is 'admin=' in certificate ?"}
+  SaveOfstAdm["offset_admin = strlen(entryBuff) - strlen('admin=') \n admin_rights = entryBuff[offset_admin + 6]"]
+  PrintWrCertFormat["Return : 'Wrong certificate format'"]
+  %% Links
+  CheckSubstrUsr --No--> PrintWrCertFormat
+  CheckSubstrUsr --Yes--> SaveOfstUsr --> CheckSubstrAdm
+  CheckSubstrAdm ---No--> PrintWrCertFormat
+  CheckSubstrAdm --Yes--> SaveOfstAdm
   end
 ```
