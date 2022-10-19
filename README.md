@@ -211,4 +211,8 @@ flowchart TD
   End((End))
   PrintCmdIsLocked --> End
   PrintWrCertFormat --> End
+
+  %% Styles
+  style CheckSubstrSig color:#ff0000
+  style SaveOfstSig color:#ff0000
 ```
