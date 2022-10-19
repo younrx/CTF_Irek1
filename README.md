@@ -211,7 +211,7 @@ flowchart TD
   %% -- Check offset values --
   %% Boxes
   CheckOfstUsr{"offset_user = 7 ?"}
-  CheckOfstAdm{"offset_admin > 21 ?"}
+  CheckOfstAdm{"offset_admin <= 21 ?"}
   CheckOfstSig{"offset_sig = offset_admin + 8 ?"}
   %% Links
   CheckOfstUsr -->|No| PrintWrCertFormat
@@ -233,3 +233,9 @@ flowchart TD
   style CheckSubstrSig color:#ff0000
   style SaveOfstSig color:#ff0000
 ```
+
+The checks performed on the different offset values can be interpreted as follows:
+- the string `user=` must start 7 characters after the begining (check `offset_user = 7`). This means that there must be an espace, or any separation character, after the command `verify` (because "verify" is only 6 characters long).
+- the string `admin=` must not be 22 characters or more away from the begining (check `offset_admin <= 21`). This means that the given username must be maximum 8 characters long ("verify"(6) + separation(1) + "user="(5) + username(8) + separation(1) = 21 characters)
+> :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
+- the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
