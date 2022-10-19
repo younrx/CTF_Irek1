@@ -191,6 +191,7 @@ flowchart TD
 
   %% ----- CERTIFICATE VERIFICATION -----
   subgraph Certificate Verification
+  %% -- Substring identification --
   %% Boxes
   CheckSubstrUsr{"Is 'user=' in certificate ?"}
   SaveOfstUsr["offset_user = strlen(entryBuff) - strlen('user=')"]
@@ -204,8 +205,23 @@ flowchart TD
   CheckSubstrUsr -->|Yes| SaveOfstUsr --> CheckSubstrAdm
   CheckSubstrAdm -->|No| PrintWrCertFormat
   CheckSubstrAdm -->|Yes| SaveOfstAdm --> CheckSubstrSig
-  CheckSubstrSig --->|No| PrintWrCertFormat
-  CheckSubstrSig -->|Yes| SaveOfstSig
+  CheckSubstrSig -->|No| PrintWrCertFormat
+  CheckSubstrSig -->|Yes| SaveOfstSig --> CheckOfstUsr
+  %% -- Check offset values --
+  %% Boxes
+  CheckOfstUsr{"offset_user = 7 ?"}
+  CheckOfstAdm{"offset_admin > 21 ?"}
+  CheckOfstSig{"offset_sig = offset_admin + 8 ?"}
+  %% Links
+  CheckOfstUsr -->|No| PrintWrCertFormat
+  CheckOfstUsr -->|Yes| CheckOfstAdm
+  CheckOfstAdm -->|No| PrintWrCertFormat
+  CheckOfstAdm -->|Yes| CheckOfstSig --> HMAC
+  CheckOfstSig -->|No| PrintWrCertFormat
+  %% -- HMAC --
+  %% Boxes
+  HMAC["HMAC"]
+  %% Links
   end
 
   End((End))
