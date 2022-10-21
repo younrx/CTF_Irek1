@@ -15,7 +15,7 @@ This CTF report is deomposed as follows:
     - [The signature verification](#the-signature-verification)
     - [The admin rights verification](#the-admin-rights-verification)
   - [Buffer overflow to modify the admin rights](#buffer-overflow-to-modify-the-admin-rights)
-- [TL;DR](#tl;dr)
+- [TL;DR](#tldr)
 
 
 ## CTF Description
@@ -182,7 +182,7 @@ After having unlocked the verify command, the servers now answers `Wrong certifi
 
 ### The verification function
 
-From the source code (and a string analysis with Ghidra), we can get the execution graph of the certificate verification procedure:
+From the source code (and a string analysis with Ghidra), we can get the execution graph of the certificate verification procedure (if the mermaid code is not correctly interpreted, you can find the graph in the folder *img* of this repo):
 ```mermaid
 flowchart TD
   Start((Start))
@@ -284,7 +284,7 @@ Then, it does checks on the different offset values that can be interpreted as f
 > :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
 - the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
 
-#### TThe signature verification
+#### The signature verification
 
 This parts checks is the given signature correspond to the given certificate signed.
 
@@ -293,6 +293,7 @@ This parts checks is the given signature correspond to the given certificate sig
 > I had a lot of struggle making the correct certificate being accepted by the server (see section [*"The certificate"*](#the-certificate)).
 > 
 > This was because I was sending the command `verify user=toto admin=0 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f` and I had the result `Wrong signature`. But an hexdump analysis (picture below) on the given certificate shows that the separation characters should be `\n` (encoded `0x0a`) and not a SPACE. Indeed, the given signature is not valid if the separation characters are not respected.
+> 
 > ![hexdump_of_certificate](img/hexdump_of_certificate.png)
 
 With the given certificate `toto.cert`, we should send the following command : `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`. Note that the space character between `verify` and `user=` can be replaced by anything (but a separation character should be present).
