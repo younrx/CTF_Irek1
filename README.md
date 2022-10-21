@@ -171,7 +171,7 @@ Let's call the PIN's characters values (in ASCII) with letters: ABCDEFGH. If the
 - H = C+5
 - G = C
 
-This gives me a patern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF`
+This gives me a patern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF` :partying_face:
 
 After having unlocked the verify command, the servers now answers `Wrong certificate format` (to the command `verify`).
 
@@ -190,8 +190,8 @@ flowchart TD
   VerifyCmdCheck -->|Yes| PrintCmdIsLocked
   VerifyCmdCheck -->|No| CheckSubstrUsr
 
-  %% ----- CERTIFICATE VERIFICATION -----
-  subgraph Certificate Verification
+  %% ----- CERTIFICATE FORMAT VERIFICATION -----
+  subgraph Certificate Format Verification
   %% -- Substring identification --
   %% Boxes
   CheckSubstrUsr{"Is 'user=' in certificate ?"}
@@ -200,13 +200,10 @@ flowchart TD
   SaveOfstAdm["offset_admin = strlen(entryBuff) - strlen('admin=') \n admin_rights = entryBuff[offset_admin + 6]"]
   CheckSubstrSig{"Is 'sig=' in certificate ?"}
   SaveOfstSig["offset_sig = strlen(entyBuff) - strlen('sig=')"]
-  PrintWrCertFormat["Return : 'Wrong certificate format'"]
   %% Links
-  CheckSubstrUsr -->|No| PrintWrCertFormat
+  
   CheckSubstrUsr -->|Yes| SaveOfstUsr --> CheckSubstrAdm
-  CheckSubstrAdm -->|No| PrintWrCertFormat
   CheckSubstrAdm -->|Yes| SaveOfstAdm --> CheckSubstrSig
-  CheckSubstrSig -->|No| PrintWrCertFormat
   CheckSubstrSig -->|Yes| SaveOfstSig --> CheckOfstUsr
   %% -- Check offset values --
   %% Boxes
@@ -214,24 +211,55 @@ flowchart TD
   CheckOfstAdm{"offset_admin <= 21 ?"}
   CheckOfstSig{"offset_sig = offset_admin + 8 ?"}
   %% Links
-  CheckOfstUsr -->|No| PrintWrCertFormat
   CheckOfstUsr -->|Yes| CheckOfstAdm
-  CheckOfstAdm -->|No| PrintWrCertFormat
-  CheckOfstAdm -->|Yes| CheckOfstSig -->|Yes| HMAC
-  CheckOfstSig -->|No| PrintWrCertFormat
-  %% -- HMAC --
-  %% Boxes
-  HMAC["HMAC"]
-  %% Links
+  CheckOfstAdm -->|Yes| CheckOfstSig
   end
+
+  %% -- SIGNATURE VERIFICATION --
+  subgraph Signature Verification
+  %% Boxes
+  HMAC["DO HMAC"]
+  CheckLenHMAC{"Is given signature length correct\ncompared to HMAC result ?"}
+  Copy["Copy HMAC result to buffer 'result_str'\n+\nCopy given signature to buffer 'buff_to_cmp'"]
+  SignCheck{"'result_str = buff_to_cmp ?"}
+  %% Links
+  CheckOfstSig -->|Yes| HMAC
+  HMAC --> CheckLenHMAC
+  CheckLenHMAC -->|Yes| Copy
+  Copy --> SignCheck
+  end
+
+  %% ----- ADMIN RIGHTS VERIFICATION -----
+  subgraph Admin Rights Verification
+  %% Boxes
+  CheckAdmRights{"Check value of admin rights"}
+  %% Links
+  SignCheck -->|Yes| CheckAdmRights
+  end
+
+  %% ----- MESSAGES DISPLAYED -----
+  %% Boxes
+  PrintWrCertFormat["Return : 'Wrong certificate format'"]
+  PrintWrSign["Return : 'Wrong signature'"]
+  PrintUsrRights["Return : 'Valid signature (admin=0)'"]
+  PrintKey["Return : 'Congrats! Here's the private key : ' + key value"]
+  %% Links
+  CheckSubstrUsr -->|No| PrintWrCertFormat
+  CheckSubstrAdm -->|No| PrintWrCertFormat
+  CheckSubstrSig -->|No| PrintWrCertFormat
+  CheckOfstUsr -->|No| PrintWrCertFormat
+  CheckOfstAdm -->|No| PrintWrCertFormat
+  CheckOfstSig -->|No| PrintWrCertFormat
+  CheckLenHMAC -->|No| PrintWrCertFormat
+  SignCheck -->|No| PrintWrSign
+  CheckAdmRights -->|0x30| PrintUsrRights
+  CheckAdmRights -->|0xfe| PrintKey
+  CheckAdmRights -->|other value| PrintWrCertFormat
 
   End((End))
   PrintCmdIsLocked --> End
   PrintWrCertFormat --> End
-
-  %% Styles
-  style CheckSubstrSig color:#ff0000
-  style SaveOfstSig color:#ff0000
+  PrintWrSign --> End
 ```
 
 The checks performed on the different offset values can be interpreted as follows:
