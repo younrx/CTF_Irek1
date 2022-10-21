@@ -221,18 +221,19 @@ flowchart TD
   HMAC["DO HMAC"]
   CheckLenHMAC{"Is given signature length correct\ncompared to HMAC result ?"}
   Copy["Copy HMAC result to buffer 'result_str'\n+\nCopy given signature to buffer 'buff_to_cmp'"]
-  SignCheck{"'result_str = buff_to_cmp ?"}
+  SignCheck{"result_str = buff_to_cmp ?"}
   %% Links
   CheckOfstSig -->|Yes| HMAC
   HMAC --> CheckLenHMAC
   CheckLenHMAC -->|Yes| Copy
   Copy --> SignCheck
   end
+  SignCheck -->|No| PrintWrSign
 
   %% ----- ADMIN RIGHTS VERIFICATION -----
   subgraph Admin Rights Verification
   %% Boxes
-  CheckAdmRights{"Check value of admin rights"}
+  CheckAdmRights{"Check value of admin_rights"}
   %% Links
   SignCheck -->|Yes| CheckAdmRights
   end
@@ -250,11 +251,10 @@ flowchart TD
   CheckOfstUsr -->|No| PrintWrCertFormat
   CheckOfstAdm -->|No| PrintWrCertFormat
   CheckOfstSig -->|No| PrintWrCertFormat
-  CheckLenHMAC -->|No| PrintWrCertFormat
-  SignCheck -->|No| PrintWrSign
-  CheckAdmRights -->|0x30| PrintUsrRights
-  CheckAdmRights -->|0xfe| PrintKey
-  CheckAdmRights -->|other value| PrintWrCertFormat
+  CheckLenHMAC ----->|No| PrintWrCertFormat
+  CheckAdmRights --->|0x30| PrintUsrRights
+  CheckAdmRights --->|0xfe| PrintKey
+  CheckAdmRights --->|other values| PrintWrCertFormat
 
   End((End))
   PrintCmdIsLocked --> End
