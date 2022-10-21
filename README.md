@@ -1,6 +1,6 @@
 # CTF made by Guillaume - sent by Irek (11/10/22)
 
-This CTF report is deomposed as follows:
+This CTF report is decomposed as follows:
 - [CTF Description](#ctf-description)
 - [Executing the binary file](#executing-the-binary-file)
 - [Exploit and analysis](#exploit-and-analysis)
