@@ -1,4 +1,4 @@
-# CTF sent by Irek (11/10/22)
+# CTF made by Guillaume - sent by Irek (11/10/22)
 
 This CTF report is deomposed as follows:
 - [CTF Description](#ctf-description)
