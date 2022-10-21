@@ -313,7 +313,7 @@ During the verification procedure, the signature passed in the command is brutal
 ```c
 void verify(int connexion, int size)
 {
-	[...]
+  [...]
   
 	unsigned char cmp_sig = 1;
 	unsigned char admin_rights = 0x30;
