@@ -290,7 +290,7 @@ This parts checks is the given signature correspond to the given certificate sig
 
 > :warning: Mistake :
 > 
-> I had a lot of struggle making the correct certificate being accepted by the server (see section [*"The certificate"*](#the-certificate)).
+> I struggled a lot making the correct certificate being accepted by the server (see section [*"The certificate"*](#the-certificate)).
 > 
 > This was because I was sending the command `verify user=toto admin=0 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f` and I had the result `Wrong signature`. But an hexdump analysis (picture below) on the given certificate shows that the separation characters should be `\n` (encoded `0x0a`) and not a SPACE. Indeed, the given signature is not valid if the separation characters are not respected.
 > 
