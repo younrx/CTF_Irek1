@@ -11,6 +11,11 @@ This CTF report is deomposed as follows:
     - [Analyzing the binary file](#analyzing-the-binary-file)
     - [Exploit to find the PIN](#exploit-to-find-the-pin)
   - [The verification function](#the-verification-function)
+    - [The format verification](#the-format-verification)
+    - [The signature verification](#the-signature-verification)
+    - [The admin rights verification](#the-admin-rights-verification)
+  - [Buffer overflow to modify the admin rights](#buffer-overflow-to-modify-the-admin-rights)
+- [TL;DR](#tl;dr)
 
 
 ## CTF Description
@@ -269,7 +274,7 @@ This procedure is decomposed in three parts:
 - The signature verification
 - The admin rights verification
 
-**The format verification**
+#### The format verification
 
 This parts ensures that the strings `user=`, `admin=` and `sig=` are present in the certificate.
 
@@ -279,7 +284,7 @@ Then, it does checks on the different offset values that can be interpreted as f
 > :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
 - the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
 
-**The signature verification**
+#### TThe signature verification
 
 This parts checks is the given signature correspond to the given certificate signed.
 
@@ -294,7 +299,7 @@ With the given certificate `toto.cert`, we should send the following command : `
 
 When receiving this command, the server answers `Valid signature (admin=0)`
 
-**The admin rights verification**
+#### The admin rights verification
 
 By default, the admin rights are set to `0x30`. To display the hidden key they must be set at `0xfe`. To modify this value, I used a buffer overflow method.
 
@@ -328,3 +333,4 @@ Testing this buffer overflow with zero padding, it turns out that it is the 16th
 
 Changing the 16th byte by `0xfe` overwrites `admin_rights` with the expected value and gives us the flag : `Congrats! Here's the private key :\n superprivatekey\n` :partying_face:
 
+# TL;DR
