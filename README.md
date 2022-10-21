@@ -177,7 +177,7 @@ After having unlocked the verify command, the servers now answers `Wrong certifi
 
 ### The verification function
 
-From the source code, we can get the execution graph of the certificate verification procedure:
+From the source code (and a string analysis with Ghidra), we can get the execution graph of the certificate verification procedure:
 ```mermaid
 flowchart TD
   Start((Start))
@@ -260,10 +260,28 @@ flowchart TD
   PrintCmdIsLocked --> End
   PrintWrCertFormat --> End
   PrintWrSign --> End
+  PrintUsrRights --> End
+  PrintKey --> End
 ```
 
-The checks performed on the different offset values can be interpreted as follows:
+This procedure is decomposed in three parts:
+- The format verification
+- The signature verification
+- The admin rights verification
+
+**The format verification**
+This parts ensures that the strings `user=`, `admin=` and `sig=` are present in the certificate.
+
+Then, it does checks on the different offset values that can be interpreted as follows:
 - the string `user=` must start 7 characters after the begining (check `offset_user = 7`). This means that there must be an espace, or any separation character, after the command `verify` (because "verify" is only 6 characters long).
 - the string `admin=` must not be 22 characters or more away from the begining (check `offset_admin <= 21`). This means that the given username must be maximum 8 characters long ("verify"(6) + separation(1) + "user="(5) + username(8) + separation(1) = 21 characters)
 > :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
 - the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
+
+> :warning: Mistake :
+> I had a lot of struggle making the correct certificate being accepted by the server (see section [*"The certificate"*]](#the-certificate)).
+> This was because I was sending the command `verify user=toto admin=0 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f` and I had the result `Wrong signature`. But an hexdump analysis (picture below) on the given certificate shows that the separation characters should be `\n` (encoded `0x0a`) and not a SPACE. Indeed, the given signature is not valid if the separation characters are not respected.
+> ![hexdump_of_certificate](img/hexdump_of_certificate.png)
+
+**The signature verification**
+**The admin rights verification**
