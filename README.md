@@ -270,6 +270,7 @@ This procedure is decomposed in three parts:
 - The admin rights verification
 
 **The format verification**
+
 This parts ensures that the strings `user=`, `admin=` and `sig=` are present in the certificate.
 
 Then, it does checks on the different offset values that can be interpreted as follows:
@@ -278,10 +279,52 @@ Then, it does checks on the different offset values that can be interpreted as f
 > :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
 - the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
 
+**The signature verification**
+
+This parts checks is the given signature correspond to the given certificate signed.
+
 > :warning: Mistake :
-> I had a lot of struggle making the correct certificate being accepted by the server (see section [*"The certificate"*]](#the-certificate)).
+> 
+> I had a lot of struggle making the correct certificate being accepted by the server (see section [*"The certificate"*](#the-certificate)).
+> 
 > This was because I was sending the command `verify user=toto admin=0 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f` and I had the result `Wrong signature`. But an hexdump analysis (picture below) on the given certificate shows that the separation characters should be `\n` (encoded `0x0a`) and not a SPACE. Indeed, the given signature is not valid if the separation characters are not respected.
 > ![hexdump_of_certificate](img/hexdump_of_certificate.png)
 
-**The signature verification**
+With the given certificate `toto.cert`, we should send the following command : `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`. Note that the space character between `verify` and `user=` can be replaced by anything (but a separation character should be present).
+
+When receiving this command, the server answers `Valid signature (admin=0)`
+
 **The admin rights verification**
+
+By default, the admin rights are set to `0x30`. To display the hidden key they must be set at `0xfe`. To modify this value, I used a buffer overflow method.
+
+### Buffer overflow to modify the admin rights
+
+During the verification procedure, the signature passed in the command is brutally copied into the array `buff_to_cmp`. At the begining of `extract.c` file, we see that this array is declared right after `admin_rights` (code below).
+
+```c
+void verify(int connexion, int size)
+{
+	[...]
+  
+	unsigned char cmp_sig = 1;
+	unsigned char admin_rights = 0x30;
+	unsigned char buff_to_cmp[WORKING_BUFFER_SIZE];
+	unsigned char result[WORKING_BUFFER_SIZE];
+	unsigned char result_str[WORKING_BUFFER_SIZE];
+	unsigned char to_send[256];
+
+	memset(buff_to_cmp, 0, WORKING_BUFFER_SIZE);
+	memset(result, 0, WORKING_BUFFER_SIZE);
+	memset(result_str, 0, WORKING_BUFFER_SIZE);
+	memset(to_send, 0, 256);
+  
+  [...]
+```
+
+By adding a lot off data after the signature, the copy will overwrite the value of `admin_rights` in the memory. Moreover, the signature comparaison is only made on 64 bytes, so the additional data will not be considered by the verification procedure.
+
+Testing this buffer overflow with zero padding, it turns out that it is the 16th byte that has an impact on the verification procedure's result (`Wrong certificate format` instead of `Valid signature (admin=0)`, see the verification procedure graph).
+
+Changing the 16th byte by `0xfe` overwrites `admin_rights` with the expected value and gives us the flag : `Congrats! Here's the private key :\n superprivatekey\n` :partying_face:
+
