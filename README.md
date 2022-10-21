@@ -298,7 +298,7 @@ This parts checks is the given signature correspond to the given certificate sig
 > 
 > This gives an answer to the previous remark.
 
-With the given certificate `toto.cert`, we should send the following command : `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`. Note that the space character between `verify` and `user=` can be replaced by anything (but a separation character should be present).
+With the given certificate `toto.cert`, we should send the following command : `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`. Note that the space character between `verify` and `user=` can be replaced by anything but a separation character should be present.
 
 When receiving this command, the server answers `Valid signature (admin=0)`
 
