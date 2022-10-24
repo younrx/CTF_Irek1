@@ -1,6 +1,6 @@
 # CTF made by Guillaume - sent by Irek (11/10/22)
 
-This CTF report is decomposed as follows:
+This CTF report is divided as follows:
 - [CTF Description](#ctf-description)
 - [Executing the binary file](#executing-the-binary-file)
 - [Exploit and analysis](#exploit-and-analysis)
@@ -46,12 +46,12 @@ We can establish a connection to this port with `telnet localhost 1337` and send
 
 ![help_cmd](img/help_cmd.png)
 
-We now know the different commands avaiable:
+We now know the different commands available:
 - help
 - verify
 - exit
 
-On the server's side, it just display the command recieved in hexadecimal, with an end sequence (`|d|a|`):
+On the server's side, it just display the command received in hexadecimal, with an end sequence (`|d|a|`):
 
 ![help_cmd_server_side](img/help_cmd_server_side.png)
 
@@ -60,28 +60,28 @@ This section describes the steps I have been through in the chronological order.
 
 ### First analysis
 #### The certificate
-Here's the content of the certificate :
+Here's the content of the certificate:
 ```
 user=toto
 admin=0
 sig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f
 ```
-It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have sush a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writting `admin=1` will not work (because the signature will not match).
-> :bulb: Idea : look into the `extract.c` file to analyse how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
+It said that if we had a certificate with admin rights, we could retrieve the key from the server. To have such a certificate, the value `admin` should be equal to `1`. But as it is signed, hard writing `admin=1` will not work (because the signature will not match).
+> :bulb: Idea : look into the `extract.c` file to analyze how the certificate is verified, and try to find a way to make it accept a 'false admin certificate'
 
 #### The `verify` command
 
-When sending the `verify` command, the server answers `Cmd locked`. This behaviour is due to the certificate verification function described in `extract.c`: the verification function is disabled by a flag (`verify_cmd_locked`), and forbid us to go any further in the certificate verification procedure.
+When sending the `verify` command, the server answers `Cmd locked`. This behavior is due to the certificate verification function described in `extract.c`: the verification function is disabled by a flag (`verify_cmd_locked`), and forbid us to go any further in the certificate verification procedure.
 
 ### Unlocking the verify command
 #### Analyzing the binary file
 
-By analyzing the file `serma_challenge` with Ghidra, it turns out that another command is avaiable : the command `unlock`. By trying this command we get two different answers from the server:
+By analyzing the file `serma_challenge` with Ghidra, it turns out that another command is available: the command `unlock`. By trying this command we get two different answers from the server:
 - `Wrong cmd format (expected format: unlock XXXXXXXX | 0xA5 XXXXXXXX)`
 - `Wrong PIN (0)`
 
-This second aswer is get if the command respect the foloxxing formats:
-- `unlockXXXXXXX` (the command folowed by 7 characters, most likely a space and 6 characters)
+This second answer is get if the command respect the following formats:
+- `unlockXXXXXXX` (the command followed by 7 characters, most likely a space and 6 characters)
 - or `unlockXX`
 
 > :question: Remark: Is accepting this short-version command `unlockXX` an unexpected behavior ? Or is it a feature that we should exploit ?
@@ -116,7 +116,7 @@ void unlock(int socket_conn,int lenght_data_received)
   [...]
 }
 ```
-It beahavior is quite simple, it verifies that the length of the given data is 15 or 10, and if not it prints an error message.
+It behavior is quite simple, it verifies that the length of the given data is 15 or 10, and if not it prints an error message.
 If this first step is passed, it checks if the input data correspond to pre-defined values (`DAT_001050dX`) and if so, it toggles the flag `verify_cmd_locked` to `0` before printing the message `Cmd unlock`.
 
 > :warning: **Mistake**
@@ -131,7 +131,7 @@ If this first step is passed, it checks if the input data correspond to pre-defi
 > By using a python script, I can construct myself the structure of the command, and send a 8-long PIN (which is more likely what the server expects)
 
 
-Anyway, the input `unlockXX` seems to not be the expected input.
+Anyway, the input `unlockXX` seems not to be the expected input.
 
 
 Here are the pre-defined values given by Ghidra:
@@ -166,7 +166,7 @@ I have tried to unlock the `verify` command by sending specific hexa values to t
 I chose to try a brute-forcing method.
 Assuming that the PIN only uses alpha-numerical characters (both with capital and lowercase letters), there is 65^8 possibilities, which is to much to test them all.
 
-But thanks to the values given by Ghidra, I can make another asumption:
+But thanks to the values given by Ghidra, I can make another assumption:
 
 Let's call the PIN's characters values (in ASCII) with letters: ABCDEFGH. If the obfuscating method is linear, the values from Ghidra enable me to say that:
 - the lower value is C (and G because C = G)
@@ -176,7 +176,7 @@ Let's call the PIN's characters values (in ASCII) with letters: ABCDEFGH. If the
 - H = C+5
 - G = C
 
-This gives me a patern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF` :partying_face:
+This gives me a pattern that makes the brute-forcing tests a lot faster. With a python script, I tested all the possibilities based on these assumptions and I found the correct PIN: `DEADBEAF` :partying_face:
 
 After having unlocked the verify command, the servers now answers `Wrong certificate format` (to the command `verify`).
 
@@ -269,7 +269,7 @@ flowchart TD
   PrintKey --> End
 ```
 
-This procedure is decomposed in three parts:
+This procedure is divided in three parts:
 - The format verification
 - The signature verification
 - The admin rights verification
@@ -279,10 +279,10 @@ This procedure is decomposed in three parts:
 This parts ensures that the strings `user=`, `admin=` and `sig=` are present in the certificate.
 
 Then, it does checks on the different offset values that can be interpreted as follows:
-- the string `user=` must start 7 characters after the begining (check `offset_user = 7`). This means that there must be an espace, or any separation character, after the command `verify` (because "verify" is only 6 characters long).
-- the string `admin=` must not be 22 characters or more away from the begining (check `offset_admin <= 21`). This means that the given username must be maximum 8 characters long ("verify"(6) + separation(1) + "user="(5) + username(8) + separation(1) = 21 characters)
+- the string `user=` must start 7 characters after the beginning (check `offset_user = 7`). This means that there must be a SPACE, or any separation character, after the command `verify` (because "verify" is only 6 characters long).
+- the string `admin=` must not be 22 characters or more away from the beginning (check `offset_admin <= 21`). This means that the given username must be maximum 8 characters long ("verify"(6) + separation(1) + "user="(5) + username(8) + separation(1) = 21 characters)
 > :question: Remark : How is interpreted the separation character after the username ? Nothing seems to indicate that it cannot be part of this username...
-- the string `sig=` must be 8 characters after the begining of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
+- the string `sig=` must be 8 characters after the beginning of the string `admin=` (check `offset_sig = offset_admin + 8`). This means that the value given after `admin=` should be on 1 character only (if we consider that it is followed by a separation character)
 
 #### The signature verification
 
@@ -308,7 +308,7 @@ By default, the admin rights are set to `0x30`. To display the hidden key they m
 
 ### Buffer overflow to modify the admin rights
 
-During the verification procedure, the signature passed in the command is brutally copied into the array `buff_to_cmp`. At the begining of `extract.c` file, we see that this array is declared right after `admin_rights` (code below).
+During the verification procedure, the signature passed in the command is brutally copied into the array `buff_to_cmp`. At the beginning of `extract.c` file, we see that this array is declared right after `admin_rights` (code below).
 
 ```c
 void verify(int connexion, int size)
@@ -330,7 +330,7 @@ void verify(int connexion, int size)
   [...]
 ```
 
-By adding a lot off data after the signature, the copy will overwrite the value of `admin_rights` in the memory. Moreover, the signature comparaison is only made on 64 bytes, so the additional data will not be considered by the verification procedure.
+By adding a lot off data after the signature, the copy will overwrite the value of `admin_rights` in the memory. Moreover, the signature comparison is made only on 64 bytes, so the additional data will not be considered by the verification procedure.
 
 Testing this buffer overflow with zero padding, it turns out that it is the 16th byte that has an impact on the verification procedure's result (`Wrong certificate format` instead of `Valid signature (admin=0)`, see the verification procedure graph).
 
@@ -341,4 +341,4 @@ After setting up the server-client communication, this CTF can be resolved by se
 - `unlock DEADBEAF` to unlock the `verify` command
 - `verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\x0\xfe` which is the command to verify the given certificate `toto.cert` (`verify user=toto\x0aadmin=0\x0asig=546f2c57cfb33c9bb7277dd041ab0f8764e68437b6ef2153301712b9ec78d91f`) but with additional data (15 `0x00` and 1 `0xfe`) to create a buffer overflow and change the value of `admin_rights` to `0xfe`
 
-The value of the key (flag) is `superprivatekey`
+The value of the key/flag is `superprivatekey`
